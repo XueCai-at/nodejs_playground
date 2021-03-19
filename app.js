@@ -107,15 +107,6 @@ async function requestHandler({ requestIndex, req, res }) {
 
 app.get("/", async (req, res) => {
   const requestIndex = ++requestCount;
-
-  // TODO(xue): remove this test for "outgoing canonical log line"
-  const realEndFn = res.end;
-  res.end = (chunk, encoding) => {
-    res.end = realEndFn;
-    res.end(chunk, encoding);
-    console.log(`[${getTimeMs()}] - res.end for request ${requestIndex} -`);
-  };
-
   requestHandler({ requestIndex, req, res });
   // requestQueue.push({ requestIndex, req, res });
 });
