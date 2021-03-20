@@ -43,6 +43,17 @@ const requestQueue = async.queue(async function (task, callback) {
 }, 1);
 //////////////////////////////////////////////////////////
 
+////////////////// worker threads /////////////////////
+const { Worker } = require("worker_threads");
+
+const responseSendWorkerThread = new Worker("./response_send_thread.js");
+// responseSendWorkerThread.on("message", () => {});
+// responseSendWorkerThread.on("error", () => {});
+responseSendWorkerThread.on("exit", (code) => {
+  console.log(`responseSendWorkerThread exited. code: ${code}`);
+});
+//////////////////////////////////////////////////////////
+
 function makeBigObject(leaves, depth) {
   if (depth === 0) {
     return "howdy";
@@ -89,20 +100,26 @@ async function requestHandler({ requestIndex, req, res }) {
     );
   });
 
-  setSendBufferSize(res);
+  // setSendBufferSize(res);
 
   console.log(
     `[${getTimeMs()}] Sending ${Math.round(
       serializedBigObject.length / 1024 / 1024
     )}MB response for request ${requestIndex}...`
   );
+
+  // TODO(xue): this doesn't work, res can't be passed in message
+  // responseSendWorkerThread.postMessage({
+  //   res: res,
+  //   serializedResponse: serializedBigObject,
+  // });
   res.send(serializedBigObject);
   // res.send("ok");
 
   console.log(`[${getTimeMs()}] - Handler done for request ${requestIndex} -`);
 
   // TODO(xue): replace this with more concise log line?
-  wtf.dump();
+  // wtf.dump();
 }
 
 app.get("/", async (req, res) => {
@@ -111,7 +128,7 @@ app.get("/", async (req, res) => {
   // requestQueue.push({ requestIndex, req, res });
 });
 
-// app.listen("/tmp/sock", () =>
-//   console.log(`Example app listening on Unix domain socket /tmp/sock!`)
-// );
-app.listen(3000, () => console.log(`Example app listening on port ${3000}!`));
+app.listen("/tmp/sock", () =>
+  console.log(`Example app listening on Unix domain socket /tmp/sock!`)
+);
+// app.listen(3000, () => console.log(`Example app listening on port ${3000}!`));

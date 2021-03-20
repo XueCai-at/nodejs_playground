@@ -19,7 +19,7 @@ function getTimeMs() {
 const app = express();
 
 const bigObject = makeBigObject(2000, 2);
-// const bigObject = makeBigObject(24, 2);
+// const bigObject = makeBigObject(24, 2);  // < 8K
 let requestCount = 0;
 let firstRequestStartTime;
 

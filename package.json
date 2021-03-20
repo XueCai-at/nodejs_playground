@@ -10,7 +10,7 @@
   "dependencies": {
     "async": "1.5.2",
     "clinic": "^8.0.1",
-    "express": "^4.16.1",
+    "express": "4.16.4",
     "ffi-napi": "2.5.0",
     "ref-napi": "1.5.2",
     "wtfnode": "^0.8.4",
