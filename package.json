@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node app.js"
   },
+  "type": "module",
   "dependencies": {
     "async": "1.5.2",
     "clinic": "^8.0.1",

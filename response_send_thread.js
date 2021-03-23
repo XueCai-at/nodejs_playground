@@ -1,5 +1,7 @@
-const { isMainThread, parentPort, workerData } = require("worker_threads");
-const assert = require("assert");
+// const { isMainThread, parentPort, workerData } = require("worker_threads");
+// const assert = require("assert");
+import { isMainThread, parentPort, workerData } from "worker_threads";
+import assert from 'assert';
 
 assert(isMainThread === false);
 

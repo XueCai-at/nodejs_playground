@@ -1,10 +1,20 @@
-const express = require("express");
-const wtf = require("wtfnode");
+// const express = require("express");
+// const wtf = require("wtfnode");
+import express from 'express';
+import wtf from 'wtfnode';
+
+////////////////// Event loop blockers /////////////////////
+import {syncAvg, asyncAvg} from "./block_event_loop/partition_calculation.js";
+//////////////////////////////////////////////////////////
 
 ////////////////// setSendBufferSize /////////////////////
-const os = require("os");
-const ref = require("ref-napi");
-const ffi = require("ffi-napi");
+// const os = require("os");
+// const ref = require("ref-napi");
+// const ffi = require("ffi-napi");
+import os from 'os';
+import ref from 'ref-napi';
+import ffi from 'ffi-napi';
+
 const cInt = ref.types.int;
 const cVoid = ref.types.void;
 const bindings = ffi.Library(null, {
@@ -36,7 +46,9 @@ function setSendBufferSize(res) {
 //////////////////////////////////////////////////////////
 
 ////////////////// async.queue /////////////////////
-const async = require("async");
+// const async = require("async");
+import async from 'async';
+
 const requestQueue = async.queue(async function (task, callback) {
   await requestHandler(task);
   callback();
@@ -44,14 +56,15 @@ const requestQueue = async.queue(async function (task, callback) {
 //////////////////////////////////////////////////////////
 
 ////////////////// worker threads /////////////////////
-const { Worker } = require("worker_threads");
+// // const { Worker } = require("worker_threads");
+// import {Worker} from 'worker_threads';
 
-const responseSendWorkerThread = new Worker("./response_send_thread.js");
-// responseSendWorkerThread.on("message", () => {});
-// responseSendWorkerThread.on("error", () => {});
-responseSendWorkerThread.on("exit", (code) => {
-  console.log(`responseSendWorkerThread exited. code: ${code}`);
-});
+// const responseSendWorkerThread = new Worker("./response_send_thread.js");
+// // responseSendWorkerThread.on("message", () => {});
+// // responseSendWorkerThread.on("error", () => {});
+// responseSendWorkerThread.on("exit", (code) => {
+//   console.log(`responseSendWorkerThread exited. code: ${code}`);
+// });
 //////////////////////////////////////////////////////////
 
 function makeBigObject(leaves, depth) {
@@ -73,6 +86,7 @@ function getTimeMs() {
 const app = express();
 
 const bigObject = makeBigObject(2000, 2);
+const serializedBigObject = JSON.stringify(bigObject);
 let requestCount = 0;
 let firstRequestStartTime;
 
@@ -83,14 +97,22 @@ async function requestHandler({ requestIndex, req, res }) {
 
   console.log(`[${getTimeMs()}] Processing request ${requestIndex}...`);
   // 115+8KB or 13+4MB
-  for (let i = 0; i < 20; ++i) {
-    await new Promise((resolve) => setTimeout(resolve, 1));
-  }
+  // for (let i = 0; i < 20; ++i) {
+  //   await new Promise((resolve) => setTimeout(resolve, 1));
+  // }
 
   console.log(
-    `[${getTimeMs()}] Serializing response for request ${requestIndex}...`
+    `[${getTimeMs()}] Calculating for request ${requestIndex}...`
   );
-  const serializedBigObject = JSON.stringify(bigObject);
+  syncAvg(1000000000);
+  // asyncAvg(1000000000, function(avg) {
+  //   console.log('async avg: ' + avg);
+  // });
+
+  // console.log(
+  //   `[${getTimeMs()}] Serializing response for request ${requestIndex}...`
+  // );
+  // const serializedBigObject = JSON.stringify(bigObject);
 
   const flushStartTimeMs = Date.now();
   res.on("finish", () => {
