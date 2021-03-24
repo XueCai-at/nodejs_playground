@@ -1,19 +1,23 @@
 // const express = require("express");
 // const wtf = require("wtfnode");
-import express from 'express';
-import wtf from 'wtfnode';
+import express from "express";
+import wtf from "wtfnode";
 
 ////////////////// Event loop blockers /////////////////////
-import {syncAvg, asyncAvg} from "./block_event_loop/partition_calculation.js";
+import { syncAvg, asyncAvg } from "./block_event_loop/partition_calculation.js";
+import {
+  encryptToBase64String,
+  decryptFromBase64String,
+} from "./block_event_loop/encryption.js";
 //////////////////////////////////////////////////////////
 
 ////////////////// setSendBufferSize /////////////////////
 // const os = require("os");
 // const ref = require("ref-napi");
 // const ffi = require("ffi-napi");
-import os from 'os';
-import ref from 'ref-napi';
-import ffi from 'ffi-napi';
+import os from "os";
+import ref from "ref-napi";
+import ffi from "ffi-napi";
 
 const cInt = ref.types.int;
 const cVoid = ref.types.void;
@@ -47,7 +51,7 @@ function setSendBufferSize(res) {
 
 ////////////////// async.queue /////////////////////
 // const async = require("async");
-import async from 'async';
+import async from "async";
 
 const requestQueue = async.queue(async function (task, callback) {
   await requestHandler(task);
@@ -87,6 +91,7 @@ const app = express();
 
 const bigObject = makeBigObject(2000, 2);
 const serializedBigObject = JSON.stringify(bigObject);
+const encryptedSerializedBigObject = encryptToBase64String(serializedBigObject);
 let requestCount = 0;
 let firstRequestStartTime;
 
@@ -101,13 +106,14 @@ async function requestHandler({ requestIndex, req, res }) {
   //   await new Promise((resolve) => setTimeout(resolve, 1));
   // }
 
-  console.log(
-    `[${getTimeMs()}] Calculating for request ${requestIndex}...`
-  );
-  syncAvg(1000000000);
-  // asyncAvg(1000000000, function(avg) {
-  //   console.log('async avg: ' + avg);
+  // console.log(`[${getTimeMs()}] Computing for request ${requestIndex}...`);
+  // syncAvg(1000000000);
+  // asyncAvg(1000000000, function (avg) {
+  //   console.log("async avg: " + avg);
   // });
+
+  console.log(`[${getTimeMs()}] Decrypting for request ${requestIndex}...`);
+  decryptFromBase64String(encryptedSerializedBigObject);
 
   // console.log(
   //   `[${getTimeMs()}] Serializing response for request ${requestIndex}...`
