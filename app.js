@@ -6,6 +6,7 @@ import wtf from "wtfnode";
 ////////////////// Event loop blockers /////////////////////
 import { syncAvg, asyncAvg } from "./block_event_loop/partition_calculation.js";
 import {
+  makeBigObj,
   encryptToBase64String,
   decryptFromBase64String,
 } from "./block_event_loop/encryption.js";
@@ -91,7 +92,10 @@ const app = express();
 
 const bigObject = makeBigObject(2000, 2);
 const serializedBigObject = JSON.stringify(bigObject);
-const encryptedSerializedBigObject = encryptToBase64String(serializedBigObject);
+// const encryptedSerializedBigObject = encryptToBase64String(serializedBigObject);
+const encryptedSerializedBigObject = encryptToBase64String(
+  JSON.stringify(makeBigObj())
+);
 let requestCount = 0;
 let firstRequestStartTime;
 

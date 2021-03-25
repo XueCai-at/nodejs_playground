@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-function makeBigObj() {
+export function makeBigObj() {
   var obj = { a: 1 };
   var niter = 23;
   for (var i = 0; i < niter; i++) {
@@ -181,6 +181,7 @@ export function bufferDecrypt(envelopeBuffer) {
   return ret;
 }
 
+// This seems to be synchronous, will occupy a large amount of time
 export function decryptFromBase64String(base64StringValue) {
   return bufferDecrypt(base64StringToBuffer(base64StringValue));
 }
