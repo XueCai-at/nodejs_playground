@@ -1,116 +1,116 @@
-Buffer.from("utf-8") took 264 ms
-bufferEncrypt() took 575 ms
-buffer.toString("base64") took 230 ms
 Example app listening on Unix domain socket /tmp/sock!
 [0] Processing request 1...
-[2] Decrypting for request 1...
-Phase: "addTagsToCurrentExecutionAsyncId", executionAsyncId: 54: tag: decryptFromBase64String, executionAsyncId: 54, triggerAsyncId: 52
-Buffer.from("base64") took 521 ms
-check mac: true
-bufferDecrypt() took 354 ms
-[880] Processing request 2...
-[881] Processing request 3...
-[882] Processing request 4...
-[882] Processing request 5...
-[883] Serializing response for request 1...
-Phase: "addTagsToCurrentExecutionAsyncId", executionAsyncId: 59: tag: serialize, executionAsyncId: 59, triggerAsyncId: 57
-[1259] Sending 55MB response for request 1...
-[1391] - Handler done for request 1 -
-[1392] Decrypting for request 2...
-Phase: "addTagsToCurrentExecutionAsyncId", executionAsyncId: 66: tag: decryptFromBase64String, executionAsyncId: 66, triggerAsyncId: 64
-Buffer.from("base64") took 495 ms
-check mac: true
-bufferDecrypt() took 328 ms
-[2217] Decrypting for request 3...
-Phase: "addTagsToCurrentExecutionAsyncId", executionAsyncId: 74: tag: decryptFromBase64String, executionAsyncId: 74, triggerAsyncId: 72
-Buffer.from("base64") took 456 ms
-check mac: true
-bufferDecrypt() took 403 ms
-[3078] Decrypting for request 4...
-Phase: "addTagsToCurrentExecutionAsyncId", executionAsyncId: 82: tag: decryptFromBase64String, executionAsyncId: 82, triggerAsyncId: 80
-Buffer.from("base64") took 459 ms
-check mac: true
-bufferDecrypt() took 368 ms
-[3908] Decrypting for request 5...
-Phase: "addTagsToCurrentExecutionAsyncId", executionAsyncId: 90: tag: decryptFromBase64String, executionAsyncId: 90, triggerAsyncId: 88
-Buffer.from("base64") took 436 ms
-check mac: true
-bufferDecrypt() took 326 ms
-[4672] Serializing response for request 2...
-Phase: "addTagsToCurrentExecutionAsyncId", executionAsyncId: 98: tag: serialize, executionAsyncId: 98, triggerAsyncId: 96
-[5025] Sending 55MB response for request 2...
-[5149] - Handler done for request 2 -
-[5151] Serializing response for request 3...
-Phase: "addTagsToCurrentExecutionAsyncId", executionAsyncId: 102: tag: serialize, executionAsyncId: 102, triggerAsyncId: 100
-[5442] Sending 55MB response for request 3...
-[5570] - Handler done for request 3 -
-[5571] Serializing response for request 4...
-Phase: "addTagsToCurrentExecutionAsyncId", executionAsyncId: 106: tag: serialize, executionAsyncId: 106, triggerAsyncId: 104
-[5861] Sending 55MB response for request 4...
-[5983] - Handler done for request 4 -
-[5983] Serializing response for request 5...
-Phase: "addTagsToCurrentExecutionAsyncId", executionAsyncId: 110: tag: serialize, executionAsyncId: 110, triggerAsyncId: 108
-[6271] Sending 55MB response for request 5...
-[6391] - Handler done for request 5 -
-[6540] -- Took 679ms to flush response for request 4 --
-[6540] Request context: requestId: 4, requestAsyncId: 42, totalCpuTime: 1243, data: {}
-  - asyncId: 42, cpuTime: 0, tags: 
-  - asyncId: 79, cpuTime: 0, tags: 
-  - asyncId: 83, cpuTime: 0, tags: 
-  - asyncId: 81, cpuTime: 0, tags: 
-  - asyncId: 82, cpuTime: 830, tags: ["decryptFromBase64String"]
-  - asyncId: 103, cpuTime: 0, tags: 
-  - asyncId: 105, cpuTime: 0, tags: 
-  - asyncId: 106, cpuTime: 413, tags: ["serialize"]
-  - asyncId: 116, cpuTime: 0, tags: 
-
-[6548] -- Took 1523ms to flush response for request 2 --
-[6549] Request context: requestId: 2, requestAsyncId: 34, totalCpuTime: 1304, data: {}
-  - asyncId: 34, cpuTime: 1, tags: 
-  - asyncId: 63, cpuTime: 0, tags: 
-  - asyncId: 67, cpuTime: 0, tags: 
-  - asyncId: 65, cpuTime: 0, tags: 
-  - asyncId: 66, cpuTime: 825, tags: ["decryptFromBase64String"]
+[1] Processing request 2...
+[2] Processing request 3...
+[2] Processing request 4...
+[3] Processing request 5...
+[3] Decrypting for request 1...
+Long synchronous operation (878ms)! requestAsyncId: 29, asyncId: 53, tags: ["decryptFromBase64String"]
+[881] Decrypting for request 2...
+Long synchronous operation (877ms)! requestAsyncId: 33, asyncId: 61, tags: ["decryptFromBase64String"]
+[1759] Decrypting for request 3...
+Long synchronous operation (803ms)! requestAsyncId: 37, asyncId: 69, tags: ["decryptFromBase64String"]
+[2562] Decrypting for request 4...
+Long synchronous operation (792ms)! requestAsyncId: 41, asyncId: 77, tags: ["decryptFromBase64String"]
+[3354] Decrypting for request 5...
+Long synchronous operation (853ms)! requestAsyncId: 45, asyncId: 85, tags: ["decryptFromBase64String"]
+[4207] Serializing response for request 1...
+Long synchronous operation (408ms)! requestAsyncId: 29, asyncId: 90, tags: ["serialize"]
+[4616] Serializing response for request 2...
+Long synchronous operation (343ms)! requestAsyncId: 33, asyncId: 94, tags: ["serialize"]
+[4959] Serializing response for request 3...
+Long synchronous operation (330ms)! requestAsyncId: 37, asyncId: 98, tags: ["serialize"]
+[5289] Serializing response for request 4...
+Long synchronous operation (310ms)! requestAsyncId: 41, asyncId: 102, tags: ["serialize"]
+[5599] Serializing response for request 5...
+Long synchronous operation (323ms)! requestAsyncId: 45, asyncId: 106, tags: ["serialize"]
+[5922] Sending 55MB response for request 1...
+[6051] - Handler done for request 1 -
+Long synchronous operation (129ms)! requestAsyncId: 29, asyncId: 110, tags: 
+[6051] Sending 55MB response for request 2...
+[6203] - Handler done for request 2 -
+Long synchronous operation (152ms)! requestAsyncId: 33, asyncId: 114, tags: 
+[6204] Sending 55MB response for request 3...
+[6341] - Handler done for request 3 -
+Long synchronous operation (138ms)! requestAsyncId: 37, asyncId: 118, tags: 
+[6342] Sending 55MB response for request 4...
+[6487] - Handler done for request 4 -
+Long synchronous operation (146ms)! requestAsyncId: 41, asyncId: 122, tags: 
+[6488] Sending 55MB response for request 5...
+[6615] - Handler done for request 5 -
+Long synchronous operation (127ms)! requestAsyncId: 45, asyncId: 126, tags: 
+[6759] -- Took 555ms to flush response for request 3 --
+[6759] Request context: requestId: 3, requestAsyncId: 37, totalCpuTime: 1271, data: {}
+  - asyncId: 37, cpuTime: 0, tags: 
+  - asyncId: 66, cpuTime: 0, tags: 
+  - asyncId: 70, cpuTime: 0, tags: 
+  - asyncId: 68, cpuTime: 0, tags: 
+  - asyncId: 69, cpuTime: 803, tags: ["decryptFromBase64String"]
   - asyncId: 95, cpuTime: 0, tags: 
   - asyncId: 97, cpuTime: 0, tags: 
-  - asyncId: 98, cpuTime: 478, tags: ["serialize"]
-  - asyncId: 111, cpuTime: 0, tags: 
-  - asyncId: 112, cpuTime: 0, tags: 
+  - asyncId: 98, cpuTime: 330, tags: ["serialize"]
+  - asyncId: 115, cpuTime: 0, tags: 
+  - asyncId: 117, cpuTime: 0, tags: 
+  - asyncId: 118, cpuTime: 138, tags: 
+  - asyncId: 132, cpuTime: 0, tags: 
 
-[6552] -- Took 1110ms to flush response for request 3 --
-[6553] Request context: requestId: 3, requestAsyncId: 38, totalCpuTime: 1282, data: {}
-  - asyncId: 38, cpuTime: 0, tags: 
-  - asyncId: 71, cpuTime: 0, tags: 
-  - asyncId: 75, cpuTime: 0, tags: 
-  - asyncId: 73, cpuTime: 0, tags: 
-  - asyncId: 74, cpuTime: 861, tags: ["decryptFromBase64String"]
-  - asyncId: 99, cpuTime: 0, tags: 
-  - asyncId: 101, cpuTime: 0, tags: 
-  - asyncId: 102, cpuTime: 421, tags: ["serialize"]
-  - asyncId: 114, cpuTime: 0, tags: 
+[6764] -- Took 276ms to flush response for request 5 --
+[6764] Request context: requestId: 5, requestAsyncId: 45, totalCpuTime: 1303, data: {}
+  - asyncId: 45, cpuTime: 0, tags: 
+  - asyncId: 82, cpuTime: 0, tags: 
+  - asyncId: 86, cpuTime: 0, tags: 
+  - asyncId: 84, cpuTime: 0, tags: 
+  - asyncId: 85, cpuTime: 853, tags: ["decryptFromBase64String"]
+  - asyncId: 103, cpuTime: 0, tags: 
+  - asyncId: 105, cpuTime: 0, tags: 
+  - asyncId: 106, cpuTime: 323, tags: ["serialize"]
+  - asyncId: 123, cpuTime: 0, tags: 
+  - asyncId: 125, cpuTime: 0, tags: 
+  - asyncId: 126, cpuTime: 127, tags: 
+  - asyncId: 136, cpuTime: 0, tags: 
 
-[6554] -- Took 283ms to flush response for request 5 --
-[6554] Request context: requestId: 5, requestAsyncId: 46, totalCpuTime: 1171, data: {}
-  - asyncId: 46, cpuTime: 0, tags: 
+[6765] -- Took 843ms to flush response for request 1 --
+[6766] Request context: requestId: 1, requestAsyncId: 29, totalCpuTime: 1418, data: {}
+  - asyncId: 29, cpuTime: 3, tags: 
+  - asyncId: 50, cpuTime: 0, tags: 
+  - asyncId: 54, cpuTime: 0, tags: 
+  - asyncId: 52, cpuTime: 0, tags: 
+  - asyncId: 53, cpuTime: 878, tags: ["decryptFromBase64String"]
   - asyncId: 87, cpuTime: 0, tags: 
-  - asyncId: 91, cpuTime: 0, tags: 
   - asyncId: 89, cpuTime: 0, tags: 
-  - asyncId: 90, cpuTime: 763, tags: ["decryptFromBase64String"]
+  - asyncId: 90, cpuTime: 408, tags: ["serialize"]
   - asyncId: 107, cpuTime: 0, tags: 
   - asyncId: 109, cpuTime: 0, tags: 
-  - asyncId: 110, cpuTime: 408, tags: ["serialize"]
-  - asyncId: 118, cpuTime: 0, tags: 
+  - asyncId: 110, cpuTime: 129, tags: 
+  - asyncId: 127, cpuTime: 0, tags: 
 
-[6555] -- Took 5296ms to flush response for request 1 --
-[6555] Request context: requestId: 1, requestAsyncId: 30, totalCpuTime: 1386, data: {}
-  - asyncId: 30, cpuTime: 3, tags: 
-  - asyncId: 51, cpuTime: 0, tags: 
-  - asyncId: 55, cpuTime: 0, tags: 
-  - asyncId: 53, cpuTime: 0, tags: 
-  - asyncId: 54, cpuTime: 876, tags: ["decryptFromBase64String"]
-  - asyncId: 56, cpuTime: 0, tags: 
+[6768] -- Took 717ms to flush response for request 2 --
+[6768] Request context: requestId: 2, requestAsyncId: 33, totalCpuTime: 1372, data: {}
+  - asyncId: 33, cpuTime: 0, tags: 
   - asyncId: 58, cpuTime: 0, tags: 
-  - asyncId: 59, cpuTime: 507, tags: ["serialize"]
-  - asyncId: 92, cpuTime: 0, tags: 
+  - asyncId: 62, cpuTime: 0, tags: 
+  - asyncId: 60, cpuTime: 0, tags: 
+  - asyncId: 61, cpuTime: 877, tags: ["decryptFromBase64String"]
+  - asyncId: 91, cpuTime: 0, tags: 
   - asyncId: 93, cpuTime: 0, tags: 
+  - asyncId: 94, cpuTime: 343, tags: ["serialize"]
+  - asyncId: 111, cpuTime: 0, tags: 
+  - asyncId: 113, cpuTime: 0, tags: 
+  - asyncId: 114, cpuTime: 152, tags: 
+  - asyncId: 130, cpuTime: 0, tags: 
+
+[6770] -- Took 429ms to flush response for request 4 --
+[6770] Request context: requestId: 4, requestAsyncId: 41, totalCpuTime: 1248, data: {}
+  - asyncId: 41, cpuTime: 0, tags: 
+  - asyncId: 74, cpuTime: 0, tags: 
+  - asyncId: 78, cpuTime: 0, tags: 
+  - asyncId: 76, cpuTime: 0, tags: 
+  - asyncId: 77, cpuTime: 792, tags: ["decryptFromBase64String"]
+  - asyncId: 99, cpuTime: 0, tags: 
+  - asyncId: 101, cpuTime: 0, tags: 
+  - asyncId: 102, cpuTime: 310, tags: ["serialize"]
+  - asyncId: 119, cpuTime: 0, tags: 
+  - asyncId: 121, cpuTime: 0, tags: 
+  - asyncId: 122, cpuTime: 146, tags: 
+  - asyncId: 134, cpuTime: 0, tags: 
 

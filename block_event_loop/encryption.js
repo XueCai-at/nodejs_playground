@@ -9,6 +9,13 @@ export function makeBigObj() {
   return obj;
 }
 
+function log(msg) {
+  const verbose = false;
+  if (verbose) {
+    console.log(msg);
+  }
+}
+
 // before:
 // function encryptV2(key: string, value: string): string {
 // return _getV2Cryptopacker().encrypt(value, key);
@@ -38,7 +45,7 @@ export function jsonStringify(obj) {
   const start = process.hrtime.bigint();
   const ret = JSON.stringify(obj);
   const duration = elapsedMsSince(start);
-  console.log(`JSON.stringify() took ${duration} ms`);
+  log(`JSON.stringify() took ${duration} ms`);
   return ret;
 }
 
@@ -46,7 +53,7 @@ export function toBuffer(stringValue) {
   const start = process.hrtime.bigint();
   const ret = Buffer.from(stringValue, "utf-8");
   const duration = elapsedMsSince(start);
-  console.log(`Buffer.from("utf-8") took ${duration} ms`);
+  log(`Buffer.from("utf-8") took ${duration} ms`);
   return ret;
 }
 
@@ -82,7 +89,7 @@ export function bufferEncrypt(plainTextBuffer) {
   const ret = Buffer.concat([iv, cipherText1, cipherText2, mac]);
 
   const duration = elapsedMsSince(start);
-  console.log(`bufferEncrypt() took ${duration} ms`);
+  log(`bufferEncrypt() took ${duration} ms`);
   return ret;
 }
 
@@ -90,7 +97,7 @@ export function toBase64String(bufferValue) {
   const start = process.hrtime.bigint();
   const ret = bufferValue.toString("base64");
   const duration = elapsedMsSince(start);
-  console.log(`buffer.toString("base64") took ${duration} ms`);
+  log(`buffer.toString("base64") took ${duration} ms`);
   return ret;
 }
 
@@ -100,24 +107,20 @@ export function encryptToBase64String(stringValue) {
 
 function testEncryption(obj) {
   const objStr = jsonStringify(obj);
-  console.log(
-    `obj string length: ${Math.round(objStr.length / 1024 / 1024)}MB\n`
-  );
+  log(`obj string length: ${Math.round(objStr.length / 1024 / 1024)}MB\n`);
 
   const objBuffer = toBuffer(objStr);
-  console.log(
-    `obj buffer length: ${Math.round(objBuffer.length / 1024 / 1024)}MB\n`
-  );
+  log(`obj buffer length: ${Math.round(objBuffer.length / 1024 / 1024)}MB\n`);
 
   const encryptedObjBuffer = bufferEncrypt(objBuffer);
-  console.log(
+  log(
     `encrypted obj buffer length: ${Math.round(
       encryptedObjBuffer.length / 1024 / 1024
     )}MB\n`
   );
 
   const encryptedObjBase64Str = toBase64String(encryptedObjBuffer);
-  console.log(
+  log(
     `encrypted obj base64 string length: ${Math.round(
       encryptedObjBase64Str.length / 1024 / 1024
     )}MB\n`
@@ -145,7 +148,7 @@ export function base64StringToBuffer(base64StringValue) {
   const start = process.hrtime.bigint();
   const ret = Buffer.from(base64StringValue, "base64");
   const duration = elapsedMsSince(start);
-  console.log(`Buffer.from("base64") took ${duration} ms`);
+  log(`Buffer.from("base64") took ${duration} ms`);
   return ret;
 }
 
@@ -168,7 +171,7 @@ export function bufferDecrypt(envelopeBuffer) {
   hasher.update(cipherText);
   const expectedMac512 = hasher.digest();
   const expectedMac = expectedMac512.slice(0, _MAC_NUM_BYTES);
-  console.log(`check mac: ${crypto.timingSafeEqual(mac, expectedMac)}`);
+  log(`check mac: ${crypto.timingSafeEqual(mac, expectedMac)}`);
 
   const decipher = crypto.createDecipheriv("aes-256-cbc", myCipherKey, iv);
   const plainText1 = decipher.update(cipherText);
@@ -177,7 +180,7 @@ export function bufferDecrypt(envelopeBuffer) {
   const ret = Buffer.concat([plainText1, plainText2]);
 
   const duration = elapsedMsSince(start);
-  console.log(`bufferDecrypt() took ${duration} ms`);
+  log(`bufferDecrypt() took ${duration} ms`);
   return ret;
 }
 
@@ -188,14 +191,14 @@ export function decryptFromBase64String(base64StringValue) {
 
 function testDecryption(encryptedObjBase64Str) {
   const encryptedObjBuffer2 = base64StringToBuffer(encryptedObjBase64Str);
-  console.log(
+  log(
     `encrypted obj buffer length: ${Math.round(
       encryptedObjBuffer2.length / 1024 / 1024
     )}MB\n`
   );
 
   const objBuffer2 = bufferDecrypt(encryptedObjBuffer2);
-  console.log(
+  log(
     `decrypted obj buffer length: ${Math.round(
       objBuffer2.length / 1024 / 1024
     )}MB\n`

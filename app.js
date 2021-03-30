@@ -155,6 +155,8 @@ async function requestHandler({ requestIndex, req, res }) {
   requestContext.addTagsToCurrentExecutionAsyncId("serialize");
   const serializedBigObject = JSON.stringify(bigObject);
 
+  await new Promise((resolve) => setTimeout(resolve, 1));
+
   const flushStartTimeMs = Date.now();
   res.on("finish", () => {
     const flushDurationMs = Date.now() - flushStartTimeMs;

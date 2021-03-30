@@ -7,12 +7,9 @@ import { debug } from "console";
 // PIPEWRAP -> HTTPINCOMINGMESSAGE (requestAsyncId)
 // PIPEWRAP -> WRITEWRAP (res.on('finish')) -> TickObject (res.on('close'))
 
-const infoByAsyncId = new Map();
-const cpuTimeByAsyncId = new Map();
-const beforeTimestampByAsyncId = new Map();
-const cpuTimeByRequestAsyncId = new Map();
-
 const requestContextByAsyncId = new Map();
+// We can't put beginTimeByAsyncId in RequestContext because `before` can be called before `createRequestContext`
+const beginTimeByAsyncId = new Map();
 
 class RequestContext {
   _data;
@@ -40,15 +37,20 @@ class RequestContext {
   }
 
   increaseCpuTimeByAsyncId(asyncId, durationMs) {
-    increaseCpuTimeById(this._totalCpuTimeByAsyncId, asyncId, durationMs);
+    const currentCpuTime = this._totalCpuTimeByAsyncId.get(asyncId);
+    if (currentCpuTime === undefined) {
+      this._totalCpuTimeByAsyncId.set(asyncId, durationMs);
+    } else {
+      this._totalCpuTimeByAsyncId.set(asyncId, currentCpuTime + durationMs);
+    }
   }
 
   addTagsToCurrentExecutionAsyncId(tag) {
     const asyncId = async_hooks.executionAsyncId();
-    log(
-      "addTagsToCurrentExecutionAsyncId",
-      `tag: ${tag}, executionAsyncId: ${async_hooks.executionAsyncId()}, triggerAsyncId: ${async_hooks.triggerAsyncId()}`
-    );
+    // log(
+    //   "addTagsToCurrentExecutionAsyncId",
+    //   `tag: ${tag}, executionAsyncId: ${async_hooks.executionAsyncId()}, triggerAsyncId: ${async_hooks.triggerAsyncId()}`
+    // );
     const tags = this._tagsByAsyncId.get(asyncId);
     if (tags) {
       tags.add(tag);
@@ -74,20 +76,20 @@ class RequestContext {
 }
 
 export function createRequestContext(data) {
+  // log(
+  //   "createRequestContext",
+  //   `executionAsyncId: ${async_hooks.executionAsyncId()}, triggerAsyncId: ${async_hooks.triggerAsyncId()}`
+  // );
   const requestContext = new RequestContext(data);
   requestContextByAsyncId.set(async_hooks.executionAsyncId(), requestContext);
   return requestContext;
 }
-export function getRequestContext(executionAsyncId = null) {
+export function getRequestContext() {
   // log(
   //   "getRequestContext",
   //   `executionAsyncId: ${async_hooks.executionAsyncId()}, triggerAsyncId: ${async_hooks.triggerAsyncId()}`
   // );
-  let asyncId = executionAsyncId;
-  if (asyncId === null) {
-    asyncId = async_hooks.executionAsyncId();
-  }
-  return requestContextByAsyncId.get(asyncId);
+  return requestContextByAsyncId.get(async_hooks.executionAsyncId());
 }
 
 function elapsedMsSince(hrtime) {
@@ -96,29 +98,6 @@ function elapsedMsSince(hrtime) {
 }
 function elapsedMsBetween(start, end) {
   return Math.round(Number(end - start) / 1e6);
-}
-
-function getRequestAsyncId(asyncId) {
-  let currentAsyncId = asyncId;
-  while (true) {
-    const info = infoByAsyncId.get(currentAsyncId);
-    if (info === undefined) {
-      return null;
-    }
-    if (info.type === "HTTPINCOMINGMESSAGE") {
-      return currentAsyncId;
-    }
-    currentAsyncId = info.triggerAsyncId;
-  }
-}
-
-function increaseCpuTimeById(cpuTimeById, id, durationMs) {
-  const currentCpuTime = cpuTimeById.get(id);
-  if (currentCpuTime === undefined) {
-    cpuTimeById.set(id, durationMs);
-  } else {
-    cpuTimeById.set(id, currentCpuTime + durationMs);
-  }
 }
 
 // Sync write to the console
@@ -142,10 +121,7 @@ export function enableRequestContextAsyncHook(verbose = true) {
       // if (verbose) {
       //   debug(resource);
       // }
-      infoByAsyncId.set(asyncId, {
-        type,
-        triggerAsyncId,
-      });
+
       // All descendant async resources of the request resource will share the same context
       if (requestContextByAsyncId.has(triggerAsyncId)) {
         requestContextByAsyncId.set(
@@ -156,55 +132,36 @@ export function enableRequestContextAsyncHook(verbose = true) {
     },
     before(asyncId) {
       log("Before", `asyncId: ${asyncId}`, verbose);
-      beforeTimestampByAsyncId.set(asyncId, process.hrtime.bigint());
+      beginTimeByAsyncId.set(asyncId, process.hrtime.bigint());
     },
     after(asyncId) {
       log("After", `asyncId: ${asyncId}`, verbose);
-      const beforeTimestamp = beforeTimestampByAsyncId.get(asyncId);
-      assert(beforeTimestamp !== undefined);
-      const durationMs = elapsedMsSince(beforeTimestamp);
-
-      increaseCpuTimeById(cpuTimeByAsyncId, asyncId, durationMs);
-      const requestAsyncId = getRequestAsyncId(asyncId);
-      increaseCpuTimeById(cpuTimeByRequestAsyncId, requestAsyncId, durationMs);
+      const beforeTime = beginTimeByAsyncId.get(asyncId);
+      assert(beforeTime !== undefined);
+      const durationMs = elapsedMsSince(beforeTime);
 
       const requestContext = requestContextByAsyncId.get(asyncId);
       if (requestContext) {
         requestContext.increaseCpuTime(durationMs);
         requestContext.increaseCpuTimeByAsyncId(asyncId, durationMs);
+
+        if (durationMs > 100) {
+          const tags = requestContext._tagsByAsyncId.get(asyncId);
+          fs.writeSync(
+            1,
+            `Long synchronous operation (${durationMs}ms)! requestAsyncId: ${
+              requestContext._requestAsyncId
+            }, asyncId: ${asyncId}, tags: ${
+              tags ? JSON.stringify(Array.from(tags.keys())) : ""
+            }\n`
+          );
+        }
       }
     },
     destroy(asyncId) {
       log("Destroy", `asyncId: ${asyncId}`, verbose);
-
-      log(
-        "Destroy",
-        `cpuTimeByAsyncId: ${JSON.stringify(
-          Array.from(cpuTimeByAsyncId.entries())
-        )}`,
-        verbose
-      );
-      log(
-        "Destroy",
-        `cpuTimeByRequestAsyncId: ${JSON.stringify(
-          Array.from(cpuTimeByRequestAsyncId.entries())
-        )}`,
-        verbose
-      );
-      log(
-        "Destroy",
-        `requestContextByAsyncId: ${JSON.stringify(
-          Array.from(requestContextByAsyncId.entries())
-        )}`,
-        verbose
-      );
-
-      infoByAsyncId.delete(asyncId);
-      cpuTimeByAsyncId.delete(asyncId);
-      beforeTimestampByAsyncId.delete(asyncId);
-      cpuTimeByRequestAsyncId.delete(asyncId);
-
       requestContextByAsyncId.delete(asyncId);
+      beginTimeByAsyncId.delete(asyncId);
     },
   });
   asyncHook.enable();
