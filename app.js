@@ -14,8 +14,15 @@ import {
 enableRequestContextAsyncHook(false);
 
 app.use(async (req, res, next) => {
-  const data = {};
-  createRequestContext(data);
+  const data = {}; // can put req info here
+  const requestContext = createRequestContext(data);
+
+  res.on("close", () => {
+    console.log(
+      `[${getTimeMs()}] Request context: ${requestContext.toString()}`
+    );
+  });
+
   next();
 });
 //////////////////////////////////////////////////////////
@@ -120,7 +127,7 @@ async function requestHandler({ requestIndex, req, res }) {
   }
 
   const requestContext = getRequestContext();
-  requestContext["requestId"] = requestIndex;
+  requestContext.setRequestId(requestIndex);
 
   console.log(`[${getTimeMs()}] Processing request ${requestIndex}...`);
   // 115+8KB or 13+4MB
@@ -134,26 +141,25 @@ async function requestHandler({ requestIndex, req, res }) {
   //   console.log("async avg: " + avg);
   // });
 
+  await new Promise((resolve) => setTimeout(resolve, 1));
+
   console.log(`[${getTimeMs()}] Decrypting for request ${requestIndex}...`);
+  requestContext.addTagsToCurrentExecutionAsyncId("decryptFromBase64String");
   decryptFromBase64String(encryptedSerializedBigObject);
 
-  // console.log(
-  //   `[${getTimeMs()}] Serializing response for request ${requestIndex}...`
-  // );
-  // const serializedBigObject = JSON.stringify(bigObject);
+  await new Promise((resolve) => setTimeout(resolve, 1));
+
+  console.log(
+    `[${getTimeMs()}] Serializing response for request ${requestIndex}...`
+  );
+  requestContext.addTagsToCurrentExecutionAsyncId("serialize");
+  const serializedBigObject = JSON.stringify(bigObject);
 
   const flushStartTimeMs = Date.now();
   res.on("finish", () => {
     const flushDurationMs = Date.now() - flushStartTimeMs;
     console.log(
       `[${getTimeMs()}] -- Took ${flushDurationMs}ms to flush response for request ${requestIndex} --`
-    );
-  });
-  res.on("close", () => {
-    console.log(
-      `[${getTimeMs()}] Context for request ${requestIndex}: ${JSON.stringify(
-        requestContext
-      )}`
     );
   });
 

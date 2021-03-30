@@ -13,8 +13,70 @@ const beforeTimestampByAsyncId = new Map();
 const cpuTimeByRequestAsyncId = new Map();
 
 const requestContextByAsyncId = new Map();
+
+class RequestContext {
+  _data;
+  _requestId;
+  _requestAsyncId;
+  _totalCpuTime;
+  _totalCpuTimeByAsyncId;
+  _tagsByAsyncId;
+
+  constructor(data) {
+    this._data = data;
+    this._requestId = null;
+    this._requestAsyncId = async_hooks.executionAsyncId();
+    this._totalCpuTime = 0;
+    this._totalCpuTimeByAsyncId = new Map();
+    this._tagsByAsyncId = new Map();
+  }
+
+  setRequestId(requestId) {
+    this._requestId = requestId;
+  }
+
+  increaseCpuTime(durationMs) {
+    this._totalCpuTime += durationMs;
+  }
+
+  increaseCpuTimeByAsyncId(asyncId, durationMs) {
+    increaseCpuTimeById(this._totalCpuTimeByAsyncId, asyncId, durationMs);
+  }
+
+  addTagsToCurrentExecutionAsyncId(tag) {
+    const asyncId = async_hooks.executionAsyncId();
+    log(
+      "addTagsToCurrentExecutionAsyncId",
+      `tag: ${tag}, executionAsyncId: ${async_hooks.executionAsyncId()}, triggerAsyncId: ${async_hooks.triggerAsyncId()}`
+    );
+    const tags = this._tagsByAsyncId.get(asyncId);
+    if (tags) {
+      tags.add(tag);
+    } else {
+      this._tagsByAsyncId.set(asyncId, new Set([tag]));
+    }
+  }
+
+  toString() {
+    let summary = `requestId: ${this._requestId}, requestAsyncId: ${
+      this._requestAsyncId
+    }, totalCpuTime: ${this._totalCpuTime}, data: ${JSON.stringify(
+      this._data
+    )}\n`;
+    for (const [asyncId, cpuTime] of this._totalCpuTimeByAsyncId.entries()) {
+      const tags = this._tagsByAsyncId.get(asyncId);
+      summary += `  - asyncId: ${asyncId}, cpuTime: ${cpuTime}, tags: ${
+        tags ? JSON.stringify(Array.from(tags.keys())) : ""
+      }\n`;
+    }
+    return summary;
+  }
+}
+
 export function createRequestContext(data) {
-  requestContextByAsyncId.set(async_hooks.executionAsyncId(), data);
+  const requestContext = new RequestContext(data);
+  requestContextByAsyncId.set(async_hooks.executionAsyncId(), requestContext);
+  return requestContext;
 }
 export function getRequestContext(executionAsyncId = null) {
   // log(
@@ -50,7 +112,7 @@ function getRequestAsyncId(asyncId) {
   }
 }
 
-function increaseCpuTimeByAsyncId(cpuTimeById, id, durationMs) {
+function increaseCpuTimeById(cpuTimeById, id, durationMs) {
   const currentCpuTime = cpuTimeById.get(id);
   if (currentCpuTime === undefined) {
     cpuTimeById.set(id, durationMs);
@@ -102,22 +164,14 @@ export function enableRequestContextAsyncHook(verbose = true) {
       assert(beforeTimestamp !== undefined);
       const durationMs = elapsedMsSince(beforeTimestamp);
 
-      increaseCpuTimeByAsyncId(cpuTimeByAsyncId, asyncId, durationMs);
+      increaseCpuTimeById(cpuTimeByAsyncId, asyncId, durationMs);
       const requestAsyncId = getRequestAsyncId(asyncId);
-      increaseCpuTimeByAsyncId(
-        cpuTimeByRequestAsyncId,
-        requestAsyncId,
-        durationMs
-      );
+      increaseCpuTimeById(cpuTimeByRequestAsyncId, requestAsyncId, durationMs);
 
       const requestContext = requestContextByAsyncId.get(asyncId);
       if (requestContext) {
-        const currentCpuTime = requestContext["totalCpuTime"];
-        if (currentCpuTime === undefined) {
-          requestContext["totalCpuTime"] = durationMs;
-        } else {
-          requestContext["totalCpuTime"] = currentCpuTime + durationMs;
-        }
+        requestContext.increaseCpuTime(durationMs);
+        requestContext.increaseCpuTimeByAsyncId(asyncId, durationMs);
       }
     },
     destroy(asyncId) {
