@@ -3,6 +3,23 @@
 import express from "express";
 import wtf from "wtfnode";
 
+const app = express();
+
+////////////////// Async hooks /////////////////////
+import {
+  createRequestContext,
+  getRequestContext,
+  enableRequestContextAsyncHook,
+} from "./request_context.js";
+enableRequestContextAsyncHook(false);
+
+app.use(async (req, res, next) => {
+  const data = {};
+  createRequestContext(data);
+  next();
+});
+//////////////////////////////////////////////////////////
+
 ////////////////// Event loop blockers /////////////////////
 import { syncAvg, asyncAvg } from "./block_event_loop/partition_calculation.js";
 import {
@@ -88,21 +105,22 @@ function getTimeMs() {
   return Date.now() - firstRequestStartTime;
 }
 
-const app = express();
-
 const bigObject = makeBigObject(2000, 2);
 const serializedBigObject = JSON.stringify(bigObject);
 // const encryptedSerializedBigObject = encryptToBase64String(serializedBigObject);
 const encryptedSerializedBigObject = encryptToBase64String(
   JSON.stringify(makeBigObj())
 );
-let requestCount = 0;
+let requestCount = 1;
 let firstRequestStartTime;
 
 async function requestHandler({ requestIndex, req, res }) {
   if (requestIndex === 1) {
     firstRequestStartTime = Date.now();
   }
+
+  const requestContext = getRequestContext();
+  requestContext["requestId"] = requestIndex;
 
   console.log(`[${getTimeMs()}] Processing request ${requestIndex}...`);
   // 115+8KB or 13+4MB
@@ -131,6 +149,13 @@ async function requestHandler({ requestIndex, req, res }) {
       `[${getTimeMs()}] -- Took ${flushDurationMs}ms to flush response for request ${requestIndex} --`
     );
   });
+  res.on("close", () => {
+    console.log(
+      `[${getTimeMs()}] Context for request ${requestIndex}: ${JSON.stringify(
+        requestContext
+      )}`
+    );
+  });
 
   // setSendBufferSize(res);
 
@@ -155,7 +180,7 @@ async function requestHandler({ requestIndex, req, res }) {
 }
 
 app.get("/", async (req, res) => {
-  const requestIndex = ++requestCount;
+  const requestIndex = requestCount++;
   requestHandler({ requestIndex, req, res });
   // requestQueue.push({ requestIndex, req, res });
 });

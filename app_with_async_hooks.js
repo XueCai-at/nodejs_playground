@@ -46,7 +46,7 @@ function setCpuTime(cpuTimeById, id, durationMs) {
 // Sync write to the console
 const writeSomething = (phase, more) => {
   fs.writeSync(
-    process.stdout.fd,
+    1,
     `Phase: "${phase}", Exec. Id: ${async_hooks.executionAsyncId()} ${
       more ? ", " + more : ""
     }\n`
@@ -63,7 +63,7 @@ const timeoutHook = async_hooks.createHook({
       type,
       triggerAsyncId,
     });
-    debug(resource);
+    // debug(resource);
   },
   before(asyncId) {
     writeSomething("Before", `asyncId: ${asyncId}`);
