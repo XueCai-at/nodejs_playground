@@ -12,6 +12,7 @@ function elapsedMsBetween(start, end) {
 import async_hooks from "async_hooks";
 import fs from "fs";
 import assert from "assert";
+import { debug } from "console";
 
 const infoByAsyncId = new Map();
 const cpuTimeByAsyncId = new Map();
@@ -44,9 +45,8 @@ function setCpuTime(cpuTimeById, id, durationMs) {
 
 // Sync write to the console
 const writeSomething = (phase, more) => {
-  return;
   fs.writeSync(
-    1,
+    process.stdout.fd,
     `Phase: "${phase}", Exec. Id: ${async_hooks.executionAsyncId()} ${
       more ? ", " + more : ""
     }\n`
@@ -63,6 +63,7 @@ const timeoutHook = async_hooks.createHook({
       type,
       triggerAsyncId,
     });
+    debug(resource);
   },
   before(asyncId) {
     writeSomething("Before", `asyncId: ${asyncId}`);
@@ -109,6 +110,10 @@ const bigObject = makeBigObject(2000, 2);
 let requestCount = 0;
 let firstRequestStartTime;
 
+async function serialize(bigObject) {
+  return JSON.stringify(bigObject);
+}
+
 async function requestHandler({ requestIndex, req, res }) {
   if (requestIndex === 1) {
     firstRequestStartTime = Date.now();
@@ -117,7 +122,8 @@ async function requestHandler({ requestIndex, req, res }) {
   console.log(
     `[${getTimeMs()}] Serializing response for request ${requestIndex}...`
   );
-  const serializedBigObject = JSON.stringify(bigObject);
+  // const serializedBigObject = JSON.stringify(bigObject);
+  const serializedBigObject = await serialize(bigObject);
 
   const flushStartTimeMs = Date.now();
   res.on("finish", () => {
@@ -127,6 +133,11 @@ async function requestHandler({ requestIndex, req, res }) {
     );
   });
   res.on("close", () => {
+    console.log(
+      `cpuTimeByAsyncId: ${JSON.stringify(
+        Array.from(cpuTimeByAsyncId.entries())
+      )}`
+    );
     console.log(
       `cpuTimeByRequestAsyncId: ${JSON.stringify(
         Array.from(cpuTimeByRequestAsyncId.entries())
