@@ -7,6 +7,13 @@ import { debug } from "console";
 // PIPEWRAP -> HTTPINCOMINGMESSAGE (requestAsyncId)
 // PIPEWRAP -> WRITEWRAP (res.on('finish')) -> TickObject (res.on('close'))
 
+// If using async.queue(), more complicated
+// HTTPINCOMINGMESSAGE (requestAsyncId) -> Immediate (queue task 1) -> PromiseWrap -> PromiseWrap (queue task 2)
+// But still
+// PIPEWRAP -> WRITEWRAP (res.on('finish')) -> TickObject (res.on('close'))
+
+const VERBOSE = false;
+
 const requestContextByAsyncId = new Map();
 // We can't put beginTimeByAsyncId in RequestContext because `before` can be called before `createRequestContext`
 const beginTimeByAsyncId = new Map();
@@ -47,10 +54,11 @@ class RequestContext {
 
   addTagsToCurrentExecutionAsyncId(tag) {
     const asyncId = async_hooks.executionAsyncId();
-    // log(
-    //   "addTagsToCurrentExecutionAsyncId",
-    //   `tag: ${tag}, executionAsyncId: ${async_hooks.executionAsyncId()}, triggerAsyncId: ${async_hooks.triggerAsyncId()}`
-    // );
+    log(
+      "addTagsToCurrentExecutionAsyncId",
+      `tag: ${tag}, executionAsyncId: ${async_hooks.executionAsyncId()}, triggerAsyncId: ${async_hooks.triggerAsyncId()}`,
+      VERBOSE
+    );
     const tags = this._tagsByAsyncId.get(asyncId);
     if (tags) {
       tags.add(tag);
@@ -76,20 +84,41 @@ class RequestContext {
 }
 
 export function createRequestContext(data) {
-  // log(
-  //   "createRequestContext",
-  //   `executionAsyncId: ${async_hooks.executionAsyncId()}, triggerAsyncId: ${async_hooks.triggerAsyncId()}`
-  // );
+  log(
+    "createRequestContext",
+    `executionAsyncId: ${async_hooks.executionAsyncId()}, triggerAsyncId: ${async_hooks.triggerAsyncId()}`,
+    VERBOSE
+  );
   const requestContext = new RequestContext(data);
   requestContextByAsyncId.set(async_hooks.executionAsyncId(), requestContext);
   return requestContext;
 }
 export function getRequestContext() {
-  // log(
-  //   "getRequestContext",
-  //   `executionAsyncId: ${async_hooks.executionAsyncId()}, triggerAsyncId: ${async_hooks.triggerAsyncId()}`
-  // );
+  log(
+    "getRequestContext",
+    `executionAsyncId: ${async_hooks.executionAsyncId()}, triggerAsyncId: ${async_hooks.triggerAsyncId()}`,
+    VERBOSE
+  );
   return requestContextByAsyncId.get(async_hooks.executionAsyncId());
+}
+export function setRequestContext(requestContext) {
+  const currentRequestContext = requestContextByAsyncId.get(
+    async_hooks.executionAsyncId()
+  );
+  if (
+    currentRequestContext &&
+    currentRequestContext._requestAsyncId === requestContext._requestAsyncId
+  ) {
+    return;
+  }
+  log(
+    "setRequestContext",
+    `requestContext: ${
+      requestContext._requestAsyncId
+    }, executionAsyncId: ${async_hooks.executionAsyncId()}, triggerAsyncId: ${async_hooks.triggerAsyncId()}`,
+    VERBOSE
+  );
+  requestContextByAsyncId.set(async_hooks.executionAsyncId(), requestContext);
 }
 
 function elapsedMsSince(hrtime) {

@@ -9,6 +9,7 @@ const app = express();
 import {
   createRequestContext,
   getRequestContext,
+  setRequestContext,
   enableRequestContextAsyncHook,
 } from "./request_context.js";
 enableRequestContextAsyncHook(false);
@@ -121,15 +122,16 @@ const encryptedSerializedBigObject = encryptToBase64String(
 let requestCount = 1;
 let firstRequestStartTime;
 
-async function requestHandler({ requestIndex, req, res }) {
+async function requestHandler({ requestIndex, req, res, requestContext }) {
   if (requestIndex === 1) {
     firstRequestStartTime = Date.now();
   }
 
-  const requestContext = getRequestContext();
-  requestContext.setRequestId(requestIndex);
-
   console.log(`[${getTimeMs()}] Processing request ${requestIndex}...`);
+
+  requestContext.setRequestId(requestIndex);
+  setRequestContext(requestContext);
+
   // 115+8KB or 13+4MB
   // for (let i = 0; i < 20; ++i) {
   //   await new Promise((resolve) => setTimeout(resolve, 1));
@@ -189,8 +191,12 @@ async function requestHandler({ requestIndex, req, res }) {
 
 app.get("/", async (req, res) => {
   const requestIndex = requestCount++;
-  requestHandler({ requestIndex, req, res });
-  // requestQueue.push({ requestIndex, req, res });
+  // Need to get request context here, because async.queue will mess it up
+  const requestContext = getRequestContext();
+
+  // requestHandler({ requestIndex, req, res, requestContext});
+
+  requestQueue.push({ requestIndex, req, res, requestContext });
 });
 
 app.listen("/tmp/sock", () =>
