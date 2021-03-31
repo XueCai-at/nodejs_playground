@@ -3,14 +3,17 @@ import fs from "fs";
 import assert from "assert";
 import { debug } from "console";
 
-// PIPESERVERWRAP -> PIPEWRAP
-// PIPEWRAP -> HTTPINCOMINGMESSAGE (requestAsyncId)
-// PIPEWRAP -> WRITEWRAP (res.on('finish')) -> TickObject (res.on('close'))
+// A request's asyncId tree roughly looks like (assuming requests are coming via a Unix domain socket):
+// TODO(xue): add one for TCP socket
+// - PIPESERVERWRAP -> PIPEWRAP
+// - PIPEWRAP -> HTTPINCOMINGMESSAGE (requestAsyncId) -> all other async resources created in the request handler
+// - PIPEWRAP -> WRITEWRAP (res.on('finish')) -> TickObject (res.on('close'))
 
-// If using async.queue(), more complicated
-// HTTPINCOMINGMESSAGE (requestAsyncId) -> Immediate (queue task 1) -> PromiseWrap -> PromiseWrap (queue task 2)
-// But still
-// PIPEWRAP -> WRITEWRAP (res.on('finish')) -> TickObject (res.on('close'))
+// If using async.queue(), the request's asyncId tree will be messed up.
+// To solve it, we need to pass requestContext explicitly and reset it in queue task handler.
+// - HTTPINCOMINGMESSAGE (requestAsyncId of request 1) -> Immediate (queue task of request 1) -> PromiseWrap -> PromiseWrap (queue task of request 2)
+// But we still have
+// - PIPEWRAP -> WRITEWRAP (res.on('finish')) -> TickObject (res.on('close'))
 
 const VERBOSE = false;
 
